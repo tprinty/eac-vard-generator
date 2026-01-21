@@ -333,21 +333,66 @@ class EAC_VCard_Generator {
 		$address_text = preg_replace( '/\s+/', ' ', $address_text );
 		$address_text = trim( $address_text );
 
-		// Try to parse common address formats.
-		// Format: Street, City, State ZIP.
-		if ( preg_match( '/^(.+?),\s*(.+?),\s*([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/i', $address_text, $matches ) ) {
-			$result['street'] = trim( $matches[1] );
-			$result['city']   = trim( $matches[2] );
-			$result['state']  = strtoupper( trim( $matches[3] ) );
-			$result['zip']    = trim( $matches[4] );
-		} elseif ( preg_match( '/^(.+?)\s+(.+?),\s*([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/i', $address_text, $matches ) ) {
-			// Format: Street City, State ZIP (with newlines converted to spaces).
-			$result['street'] = trim( $matches[1] );
-			$result['city']   = trim( $matches[2] );
-			$result['state']  = strtoupper( trim( $matches[3] ) );
-			$result['zip']    = trim( $matches[4] );
+		if ( empty( $address_text ) ) {
+			return $result;
+		}
+
+		// Parse from the end backwards - find State and ZIP first.
+		// Pattern: "City, STATE ZIP" or "City STATE ZIP" at the end.
+		if ( preg_match( '/,?\s*([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/i', $address_text, $matches ) ) {
+			$result['state'] = strtoupper( trim( $matches[1] ) );
+			$result['zip']   = trim( $matches[2] );
+
+			// Remove state and ZIP from the address text.
+			$remaining = trim( preg_replace( '/,?\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?$/i', '', $address_text ) );
+
+			// Now find the city - it's the last part before where state/zip was.
+			// Look for "Street, City" or "Street City" pattern.
+			if ( preg_match( '/^(.+),\s*([^,]+)$/', $remaining, $city_matches ) ) {
+				// Format: "Street Address, City".
+				$result['street'] = trim( $city_matches[1] );
+				$result['city']   = trim( $city_matches[2] );
+			} else {
+				// No comma - try to find city as last word(s) before state.
+				// Common city names may be multiple words, so look for known patterns.
+				// Try to match: everything up to last 1-3 words as city.
+				$words = preg_split( '/\s+/', $remaining );
+
+				if ( count( $words ) > 1 ) {
+					// Assume city is the last word (simple case).
+					// For multi-word cities, check if second-to-last word is likely part of city.
+					$city_words   = array();
+					$street_words = $words;
+
+					// Work backwards to find likely city boundary.
+					// Cities don't usually start with numbers, streets often do.
+					while ( count( $street_words ) > 1 ) {
+						$last_word = array_pop( $street_words );
+						array_unshift( $city_words, $last_word );
+
+						// If next word looks like end of street (directional, number, or common suffix).
+						$prev_word = end( $street_words );
+						if ( preg_match( '/^\d+$/', $prev_word ) ||
+							preg_match( '/^(St|Ave|Blvd|Dr|Rd|Ln|Ct|Way|Pkwy|Hwy|Suite|Ste|Floor|Fl)\.?$/i', $prev_word ) ||
+							preg_match( '/^(N|S|E|W|NE|NW|SE|SW|North|South|East|West)\.?$/i', $prev_word ) ) {
+							break;
+						}
+
+						// If we've collected 2 words for city, that's usually enough.
+						if ( count( $city_words ) >= 2 ) {
+							break;
+						}
+					}
+
+					$result['street'] = implode( ' ', $street_words );
+					$result['city']   = implode( ' ', $city_words );
+				} else {
+					// Only one word - use it as street.
+					$result['street'] = $remaining;
+				}
+			}
 		} else {
-			// If no pattern matches, just use the whole thing as street.
+			// No state/ZIP pattern found - use entire text as street.
 			$result['street'] = $address_text;
 		}
 
