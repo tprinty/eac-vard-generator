@@ -373,7 +373,7 @@ class EAC_VCard_Generator {
 						// If next word looks like end of street (directional, number, or common suffix).
 						$prev_word = end( $street_words );
 						if ( preg_match( '/^\d+$/', $prev_word ) ||
-							preg_match( '/^(St|Ave|Blvd|Dr|Rd|Ln|Ct|Way|Pkwy|Hwy|Suite|Ste|Floor|Fl)\.?$/i', $prev_word ) ||
+							preg_match( '/^(Street|St|Avenue|Ave|Boulevard|Blvd|Drive|Dr|Road|Rd|Lane|Ln|Court|Ct|Way|Parkway|Pkwy|Highway|Hwy|Place|Pl|Circle|Cir|Trail|Trl|Terrace|Ter|Suite|Ste|Floor|Fl)\.?$/i', $prev_word ) ||
 							preg_match( '/^(N|S|E|W|NE|NW|SE|SW|North|South|East|West)\.?$/i', $prev_word ) ) {
 							break;
 						}
