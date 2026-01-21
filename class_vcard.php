@@ -112,16 +112,14 @@ class vcard {
     || isset($this->data['work_state'])
     || isset($this->data['work_postal_code'])
     || isset($this->data['work_country'])) {
-      $this->card .= "ADR;TYPE=work:";
-        if(isset($this->data['work_po_box'])){
-		$this->card .=  $this->data['work_po_box'].";";
-	}
-        $this->card .= $this->data['work_extended_address'].";"
-        .$this->data['work_address'].";"
-        .$this->data['work_city'].";"
-        .$this->data['work_state'].";"
-        .$this->data['work_postal_code'].";"
-        .$this->data['work_country']."\r\n";
+      $this->card .= "ADR;TYPE=work:"
+        .(isset($this->data['work_po_box']) ? $this->data['work_po_box'] : '').";"
+        .(isset($this->data['work_extended_address']) ? $this->data['work_extended_address'] : '').";"
+        .(isset($this->data['work_address']) ? $this->data['work_address'] : '').";"
+        .(isset($this->data['work_city']) ? $this->data['work_city'] : '').";"
+        .(isset($this->data['work_state']) ? $this->data['work_state'] : '').";"
+        .(isset($this->data['work_postal_code']) ? $this->data['work_postal_code'] : '').";"
+        .(isset($this->data['work_country']) ? $this->data['work_country'] : '')."\r\n";
     }
   	if (isset($this->data['home_po_box'])
     || isset($this->data['home_extended_address'])
@@ -131,13 +129,13 @@ class vcard {
     || isset($this->data['home_postal_code'])
     || isset($this->data['home_country'])) {
       $this->card .= "ADR;TYPE=home:"
-        .$this->data['home_po_box'].";"
-        .$this->data['home_extended_address'].";"
-        .$this->data['home_address'].";"
-        .$this->data['home_city'].";"
-        .$this->data['home_state'].";"
-        .$this->data['home_postal_code'].";"
-        .$this->data['home_country']."\r\n";
+        .(isset($this->data['home_po_box']) ? $this->data['home_po_box'] : '').";"
+        .(isset($this->data['home_extended_address']) ? $this->data['home_extended_address'] : '').";"
+        .(isset($this->data['home_address']) ? $this->data['home_address'] : '').";"
+        .(isset($this->data['home_city']) ? $this->data['home_city'] : '').";"
+        .(isset($this->data['home_state']) ? $this->data['home_state'] : '').";"
+        .(isset($this->data['home_postal_code']) ? $this->data['home_postal_code'] : '').";"
+        .(isset($this->data['home_country']) ? $this->data['home_country'] : '')."\r\n";
     }
     if (isset($this->data['email1'])) { $this->card .= "EMAIL;TYPE=internet,pref:".$this->data['email1']."\r\n"; }
     if (isset($this->data['email2'])) { $this->card .= "EMAIL;TYPE=internet:".$this->data['email2']."\r\n"; }
