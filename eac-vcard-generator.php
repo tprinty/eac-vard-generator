@@ -197,6 +197,18 @@ class EAC_VCard_Generator {
 				$vcard->data['email1'] = sanitize_email( $email );
 			}
 
+			// Main phone.
+			$main_phone = get_field( 'main', $attorney_id );
+			if ( ! empty( $main_phone ) ) {
+				$vcard->data['office_tel'] = $this->format_phone( $main_phone );
+			}
+
+			// Direct phone.
+			$direct_phone = get_field( 'direct', $attorney_id );
+			if ( ! empty( $direct_phone ) ) {
+				$vcard->data['direct_tel'] = $this->format_phone( $direct_phone );
+			}
+
 			// Cell phone.
 			$cell_phone = get_field( 'attorney_cell_phone', $attorney_id );
 			if ( ! empty( $cell_phone ) ) {

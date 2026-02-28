@@ -52,6 +52,7 @@ class vcard {
       ,"home_postal_code"=>null
       ,"home_country"=>null
       ,"office_tel"=>null
+      ,"direct_tel"=>null
       ,"home_tel"=>null
       ,"cell_tel"=>null
       ,"fax_tel"=>null
@@ -140,6 +141,7 @@ class vcard {
     if (isset($this->data['email1'])) { $this->card .= "EMAIL;TYPE=internet,pref:".$this->data['email1']."\r\n"; }
     if (isset($this->data['email2'])) { $this->card .= "EMAIL;TYPE=internet:".$this->data['email2']."\r\n"; }
     if (isset($this->data['office_tel'])) { $this->card .= "TEL;TYPE=work,voice:".$this->data['office_tel']."\r\n"; }
+    if (isset($this->data['direct_tel'])) { $this->card .= "TEL;TYPE=work,voice,pref:".$this->data['direct_tel']."\r\n"; }
     if (isset($this->data['home_tel'])) { $this->card .= "TEL;TYPE=home,voice:".$this->data['home_tel']."\r\n"; }
     if (isset($this->data['cell_tel'])) { $this->card .= "TEL;TYPE=cell,voice:".$this->data['cell_tel']."\r\n"; }
     if (isset($this->data['fax_tel'])) { $this->card .= "TEL;TYPE=work,fax:".$this->data['fax_tel']."\r\n"; }
