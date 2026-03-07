@@ -9,9 +9,9 @@
  *
  * @wordpress-plugin
  * Plugin Name:       EAC vCard Generator
- * Plugin URI:        https://github.com/tprinty/eac-vard-generator
+ * Plugin URI:        https://github.com/tprinty/eac-vcard-generator
  * Description:       Generates vCard downloads for Attorney posts using ACF fields.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 5.0
  * Requires PHP:      7.4
  * Author:            Tom Printy
@@ -26,12 +26,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Prevent loading the plugin twice.
+if ( defined( 'EAC_VCARD_VERSION' ) ) {
+	return;
+}
+
 /**
  * Plugin version.
  *
  * @var string
  */
-define( 'EAC_VCARD_VERSION', '1.0.0' );
+define( 'EAC_VCARD_VERSION', '1.1.0' );
 
 /**
  * Plugin directory path.
@@ -122,11 +127,13 @@ class EAC_VCard_Generator {
 	 * @return void
 	 */
 	public function handle_vcard_download() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce checked below after extracting attorney_id needed for nonce action.
 		if ( ! isset( $_GET['eac_vcard_download'] ) || ! isset( $_GET['attorney_id'] ) ) {
 			return;
 		}
 
-		$attorney_id = absint( $_GET['attorney_id'] );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce checked below; attorney_id is needed to construct the nonce action.
+		$attorney_id = absint( wp_unslash( $_GET['attorney_id'] ) );
 
 		if ( ! $attorney_id ) {
 			return;
@@ -164,7 +171,7 @@ class EAC_VCard_Generator {
 	 * @return void
 	 */
 	private function generate_and_download_vcard( $attorney_id ) {
-		$vcard = new vcard();
+		$vcard = new VCard();
 
 		// Get attorney data from ACF fields and post.
 		$post      = get_post( $attorney_id );
@@ -412,13 +419,47 @@ class EAC_VCard_Generator {
 	}
 
 	/**
+	 * Extract a phone number string from an ACF field value.
+	 *
+	 * Custom ACF field types like dmachphone may return an array
+	 * instead of a plain string. This method handles both formats.
+	 *
+	 * @since 1.0.1
+	 * @param mixed $value The raw ACF field value (string or array).
+	 * @return string The phone number string, or empty string if not found.
+	 */
+	private function extract_phone_value( $value ) {
+		if ( is_string( $value ) ) {
+			return $value;
+		}
+
+		if ( is_array( $value ) ) {
+			// The acf-phone-number plugin (dmachphone) returns an array
+			// with keys like 'international', 'national', 'e164', 'rfc3966'.
+			if ( ! empty( $value['international'] ) ) {
+				return $value['international'];
+			}
+			if ( ! empty( $value['e164'] ) ) {
+				return $value['e164'];
+			}
+			if ( ! empty( $value['national'] ) ) {
+				return $value['national'];
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * Format phone number for vCard.
 	 *
 	 * @since 1.0.0
-	 * @param string $phone Raw phone number.
+	 * @param mixed $phone Raw phone number (string or array from ACF).
 	 * @return string Formatted phone number.
 	 */
 	private function format_phone( $phone ) {
+		$phone = $this->extract_phone_value( $phone );
+
 		// Remove all non-numeric characters except +.
 		$phone = preg_replace( '/[^0-9+]/', '', $phone );
 		return $phone;
